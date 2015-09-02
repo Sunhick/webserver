@@ -7,7 +7,7 @@
 
 using namespace std;
 
-namespace WebServer {
+namespace SimpleWebServer {
   class ConfigParser {
   private:
     map<string, string> parsedValues;

@@ -5,7 +5,7 @@
 
 #include "ConfigParser.h"
 
-using namespace WebServer;
+using namespace SimpleWebServer;
 using namespace std;
 
 string ConfigParser::GetString(string key)
@@ -35,7 +35,7 @@ ConfigParser::ConfigParser(string configfile)
       continue;
 
     vector<string> tokens = Split(str);
-    parsedValues.insert(pair<string,string>(tokens.at(0), tokens.at(1)));
+    parsedValues.insert(pair<string, string>(tokens.at(0), tokens.at(1)));
   }
 }
 
