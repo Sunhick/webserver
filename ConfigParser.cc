@@ -10,9 +10,8 @@ using namespace std;
 
 string ConfigParser::GetString(string key)
 {
-  if(!parsedValues.count(key)) {
+  if(!parsedValues.count(key))
     throw "Invalid key!";
-  }
 
   return parsedValues[key];
 }
@@ -34,30 +33,24 @@ ConfigParser::ConfigParser(string configfile)
   for(string str; getline(cfile, str);) {
     if(str[0] == '#') // comment line, skip it.
       continue;
-    /*
-      istringstream buf(str);
-      istream_iterator<std::string> beg(buf), end;
 
-      vector<std::string> tokens(beg, end);
-      parsedValues.insert(tokens.at(0), tokens.at(1));
-    */
     vector<string> tokens = Split(str);
     parsedValues.insert(pair<string,string>(tokens.at(0), tokens.at(1)));
   }
 }
 
 vector<string> ConfigParser::Split(const string& str,
-		     int delimiter(int))
+				   int delimiter(int))
 {
   vector<string> result;
-  auto e=str.end();
-  auto i=str.begin();
-  while(i!=e){
-    i=find_if_not(i,e, delimiter);
-    if(i==e) break;
-    auto j=find_if(i,e, delimiter);
-    result.push_back(string(i,j));
-    i=j;
+  auto end = str.end();
+  auto start = str.begin();
+  while(start != end){
+    start = find_if_not(start,end,delimiter);
+    if(start == end) break;
+    auto j= find_if(start,end,delimiter);
+    result.push_back(string(start,j));
+    start =j;
   }
   return result;
 }
