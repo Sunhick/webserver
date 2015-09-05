@@ -103,10 +103,18 @@ bool WebServer::Start()
       cout << "Error in reading the request" << endl;
       continue;
     }
-
+    cout << "Accepted the client!" << endl;
     cout << "Contents" << endl << buf << endl;
     
-    cout << "Accepted the client!" << endl;
+    char response[] = "HTTP/1.1 200 OK\r\n"
+      "Content-Type: text/html; charset=UTF-8\r\n\r\n"
+      "<!DOCTYPE html><html><head><title>welcome to web server programming</title>"
+      "<body><h1>Hello, world!</h1></body></html>\r\n";
+
+    cout << "******Sending data***************" << endl;
+    write(new_fd,response, sizeof(response) - 1);
+    
+    cout << response << endl;
   }
 
   // todo: start the server
