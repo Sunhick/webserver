@@ -8,14 +8,15 @@
 using namespace std;
 
 namespace SimpleWebServer {
+  // Configuration file parser(ws.conf)
   class ConfigParser {
   private:
     map<string, string> parsedValues;
-    vector<string> Split(const string& str,
-			 int delimiter(int) = ::isspace);
+    vector<string> Split(const string& str, int delimiter(int) = ::isspace);
 
-      public:
+  public:
     ConfigParser(string configfile);
+    ~ConfigParser();
     string GetString(string key);
     int GetInteger(string key);
   };

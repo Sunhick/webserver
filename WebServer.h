@@ -4,15 +4,21 @@
 #include <string>
 #include <map>
 
+#define BACKLOG 32
+
 using namespace std;
 
 namespace SimpleWebServer {
   class WebServer {
   private:
+    int sockfd; // socket file descriptor
     int listenPort = 5555; //default port
     string documentRoot = ""; // Document root directory
     string documentIndex = ""; // default page
     map<string, string> contentTypes; // dictionary of all content types
+
+    int OpenServerSocket(int backlog);
+    int Die(const char *format, ...);
     
   public:
     WebServer(string cfile);

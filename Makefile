@@ -6,10 +6,12 @@ CC = g++
 LDFLAGS =
 CCFLAGS = -g -Wall -std=c++11
 
+OBJS = test.o ConfigParser.o WebServer.o
+
 all: test
 
 test: test.o ConfigParser.o WebServer.o
-	$(CC) $(CCFLAGS) test.o ConfigParser.o WebServer.o -o test
+	$(CC) $(CCFLAGS) $(OBJS) -o test
 
 ConfigParser.o: ConfigParser.h ConfigParser.cc
 	$(CC) $(CCFLAGS) -c ConfigParser.cc

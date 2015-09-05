@@ -24,6 +24,12 @@ int ConfigParser::GetInteger(string key)
   return atoi(value.c_str());
 }
 
+ConfigParser::~ConfigParser()
+{
+  // clean up the parsed variables
+  this->parsedValues.clear();
+}
+
 ConfigParser::ConfigParser(string configfile)
 {
   ifstream cfile(configfile.c_str());
