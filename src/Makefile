@@ -1,14 +1,18 @@
 #
+# Author: Sunil bn <suba5417@colorado.edu>
 # Make file for Web Server
 # 
 
 CC = g++
+DEBUG = -g
 LDFLAGS = -pthread
-CCFLAGS = -g -Wall -std=c++11 -I $(IDIR)
+CCFLAGS = -Wall -std=c++11 $(DEBUG) -I $(IDIR)
 
 IDIR = ./include
 Exe = httpd
-OBJS = test.o ConfigParser.o WebServer.o
+
+SRC = test.cc ConfigParser.cc WebServer.cc
+OBJS = $(SRC:.cc=.o)
 
 all: $(Exe)
 
@@ -20,4 +24,8 @@ $(Exe): $(OBJS)
 
 .PHONY: clean
 clean:
-	rm *.o *~ $(Exe)
+	@rm $(OBJS) $(Exe) *~ include/*~
+
+# create a web server source tar ball 
+tar:
+	tar cvf webserver.tar *.* include/*.*
