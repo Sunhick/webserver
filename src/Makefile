@@ -7,17 +7,17 @@ LDFLAGS = -pthread
 CCFLAGS = -g -Wall -std=c++11 -I $(IDIR)
 
 IDIR = ./include
-
+Exe = httpd
 OBJS = test.o ConfigParser.o WebServer.o
 
-all: test
+all: $(Exe)
 
-test: $(OBJS)
-	$(CC) $(LDFLAGS) $(OBJS) -o test
+$(Exe): $(OBJS)
+	$(CC) $(LDFLAGS) $(OBJS) -o $(Exe)
 
 %.o: %.cc
-	$(CC) -c -o $@ $< $(CCFLAGS)
+	$(CC) -c -o $@ $(CCFLAGS) $<
 
 .PHONY: clean
 clean:
-	rm *.o *~ test
+	rm *.o *~ $(Exe)

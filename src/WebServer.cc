@@ -9,53 +9,59 @@
 #include <sys/resource.h>
 #include <sys/wait.h>
 #include <sys/errno.h>
-#include <netinet/in.h>
-#include <netdb.h>
 
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
+#include <netdb.h>
 #include <stdarg.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include <iostream>
+#include <thread>
+#include <vector>
 
 #include "include/WebServer.h"
 #include "include/ConfigParser.h"
 
-using namespace std;
 using namespace webkit;
 
-WebServer::WebServer(string conf)
+WebServer::WebServer(std::string conf)
 {
   ConfigParser c(conf);
   this->listenPort = c.GetInteger("Listen");
   this->documentRoot = c.GetString("DocumentRoot");
   this->documentIndex = c.GetString("DirectoryIndex");
+
   // Content types
-  this->contentTypes.insert(pair<string, string>("html", c.GetString(".html")));
-  this->contentTypes.insert(pair<string, string>("txt", c.GetString(".txt")));
-  this->contentTypes.insert(pair<string, string>("png", c.GetString(".png")));
-  this->contentTypes.insert(pair<string, string>("gif", c.GetString(".gif")));
+  this->contentTypes.insert(std::pair<std::string, std::string>("html", c.GetString(".html")));
+  this->contentTypes.insert(std::pair<std::string, std::string>("txt", c.GetString(".txt")));
+  this->contentTypes.insert(std::pair<std::string, std::string>("png", c.GetString(".png")));
+  this->contentTypes.insert(std::pair<std::string, std::string>("gif", c.GetString(".gif")));
 }
 
 int WebServer::OpenSocket(int backlog)
 {
-  struct sockaddr_in sin; /* an Internet endpoint address  */
-  int sockfd;              /* socket descriptor */
+  struct sockaddr_in sin; 	// an Internet endpoint address 
+  int sockfd;               	// socket descriptor 
 
   memset(&sin, 0, sizeof(sin));
   sin.sin_family = AF_INET;
   sin.sin_addr.s_addr = INADDR_ANY;
+  //sin.sin_addr.s_addr = inet_addr("192.168.0.16");
 
-  /* Map port number (char string) to port number (int) */
+  // Map port number (char string) to port number (int)
   if ((sin.sin_port=htons((unsigned short)this->listenPort)) == 0)
     Die("can't get \"%sockfd\" port number\n", this->listenPort);
 
-  /* Allocate a socket */
+  // Allocate a socket
   sockfd = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
   if (sockfd < 0)
     Die("can't create socket: %sockfd\n", strerror(errno));
 
-  /* Bind the socket */
+  // Bind the socket
   if (bind(sockfd, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
     fprintf(stderr, "can't bind to %d port: %s; Trying other port\n",
 	    this->listenPort, strerror(errno));
@@ -83,56 +89,76 @@ int WebServer::Die(const char *format, ...)
   va_start(args, format);
   vfprintf(stderr, format, args);
   va_end(args);
-  exit(1);  // Exit failure
+  exit(EXIT_FAILURE);  
 }
 
 bool WebServer::Start()
 {
   // open master socket for client to connect
-  // a maximum of 32 client can connect simultaneously
+  // a maximum of 32 client can connect simultaneously.
   sockfd = OpenSocket(BACKLOG);
 
-  // keep listening for incoming connections
+  // unable to open socket.
+  if (sockfd < 0)
+    return false;
+
+  vector<thread> requests; // request threads
+
+  // Accept incoming connections & launch
+  // the request thread to service the clients
   while (true) {
     struct sockaddr_in their_addr;
     socklen_t sin_size = sizeof(struct sockaddr_in);
-    int new_fd;
-    if ((new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size)) == -1) {
+    int newfd;
+    if ((newfd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size)) == -1) {
       perror("accept");
       continue;
     }
 
-    char buf[4096];
-    if (read(new_fd, buf, 4096) == -1) {
-      cout << "Error in reading the request" << endl;
-      continue;
-    }
-    cout << "Accepted the client!" << endl;
-    cout << "Contents" << endl << buf << endl;
+    // fork vs thread ?
+    // Fork : overhead of creating process
+    // thread : lightweight process and faster in setting up
+    // provide service to client in a different thread
+    requests.push_back(thread(&WebServer::HandleRequest,this, newfd));
     
-    char response[] = "HTTP/1.1 200 OK\r\n"
-      "Content-Type: text/html; charset=UTF-8\r\n\r\n"
-      "<!DOCTYPE html><html><head><title>welcome to web server programming</title>"
-      "<body><h1>Hello, world!</h1></body></html>\r\n";
-
-    cout << "******Sending data***************" << endl;
-    write(new_fd,response, sizeof(response) - 1);
-    
-    cout << response << endl;
+    std::cout << "Accepted the client! Client Count:" << requests.size() << std::endl;
   }
+
+  // Make sure all clients are serviced, before server goes down
+  for (auto &i : requests)
+    i.join();
 
   // todo: start the server
   return true;
 }
 
-bool WebServer::Stop()
+void WebServer::HandleRequest(int newfd)
 {
-  // todo: gracefull shutdown
-  return false;
+  char buf[4096];
+  if (read(newfd, buf, 4096) == -1) {
+    std::cout << "Error in reading the request" << std::endl;
+    return;
+  }
+
+  std::cout << "Contents" << std::endl << buf << std::endl;
+  char response[] = "HTTP/1.1 200 OK\r\n"
+    "Content-Type: text/html; charset=UTF-8\r\n\r\n"
+    "<!DOCTYPE html><html><head><title>welcome to web server programming</title>"
+    "<body><h1>Hello, world!</h1></body></html>\r\n";
+
+  std::cout << "******Sending data***************" << std::endl;
+  write(newfd,response, sizeof(response) - 1);
+    
+  std::cout << response << std::endl;
+  std::cout << "****Thread Id:" << this_thread::get_id() << std::endl;
 }
 
-bool WebServer::Abort()
+void WebServer::Stop()
 {
-  // todo: abort the server
-  return false;
+  close(sockfd);
+}
+
+void WebServer::Abort()
+{
+  abort();
 }

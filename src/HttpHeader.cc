@@ -7,7 +7,7 @@
 
 using namespace webkit;
 
-void http_header::SetHeader(string key, string value)
+void HttpHeader::SetHeader(string key, string value)
 {
   
 }
