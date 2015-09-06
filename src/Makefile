@@ -11,7 +11,7 @@ CCFLAGS = -Wall -std=c++11 $(DEBUG) -I $(IDIR)
 IDIR = ./include
 Exe = httpd
 
-SRC = test.cc ConfigParser.cc WebServer.cc
+SRC = $(wildcard *.cc)
 OBJS = $(SRC:.cc=.o)
 
 all: $(Exe)
