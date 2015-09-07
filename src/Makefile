@@ -19,7 +19,7 @@ OBJS = $(SRC:.cc=.o)
 
 TARBALL = webserver.tar.gz
 
-all: $(Exe) $(TARBALL)
+all: $(Exe)
 
 $(Exe): $(OBJS)
 	$(CC) $(LDFLAGS) $(OBJS) -o $(Exe)
