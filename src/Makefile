@@ -33,4 +33,4 @@ clean:
 
 # create a web server source tar ball 
 tar:
-	tar -cvzf $(TARBALL) *.* include/*.*
+	tar -cvzf $(TARBALL) *.* include/*.* README
