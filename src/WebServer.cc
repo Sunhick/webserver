@@ -49,8 +49,9 @@ int WebServer::OpenSocket(int backlog)
 
   memset(&sin, 0, sizeof(sin));
   sin.sin_family = AF_INET;
-  //sin.sin_addr.s_addr = INADDR_ANY;
-  sin.sin_addr.s_addr = inet_addr("192.168.0.16");
+  sin.sin_addr.s_addr = INADDR_ANY;
+  //  support for connecting from different host
+  //sin.sin_addr.s_addr = inet_addr("192.168.0.16");
 
   // Map port number (char string) to port number (int)
   if ((sin.sin_port=htons((unsigned short)this->listenPort)) == 0)
