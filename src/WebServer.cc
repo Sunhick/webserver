@@ -30,16 +30,16 @@ using namespace webkit;
 
 WebServer::WebServer(std::string conf)
 {
-  ConfigParser c(conf);
-  this->listenPort = c.GetInteger("Listen");
-  this->documentRoot = c.GetString("DocumentRoot");
-  this->documentIndex = c.GetString("DirectoryIndex");
+  ConfigParser config(conf);
+  this->listenPort = config.GetInteger("Listen");
+  this->documentRoot = config.GetString("DocumentRoot");
+  this->documentIndex = config.GetString("DirectoryIndex");
 
   // Content types
-  this->contentTypes.insert(std::pair<std::string, std::string>("html", c.GetString(".html")));
-  this->contentTypes.insert(std::pair<std::string, std::string>("txt", c.GetString(".txt")));
-  this->contentTypes.insert(std::pair<std::string, std::string>("png", c.GetString(".png")));
-  this->contentTypes.insert(std::pair<std::string, std::string>("gif", c.GetString(".gif")));
+  this->contentTypes.insert(std::pair<std::string, std::string>("html", config.GetString(".html")));
+  this->contentTypes.insert(std::pair<std::string, std::string>("txt", config.GetString(".txt")));
+  this->contentTypes.insert(std::pair<std::string, std::string>("png", config.GetString(".png")));
+  this->contentTypes.insert(std::pair<std::string, std::string>("gif", config.GetString(".gif")));
 }
 
 int WebServer::OpenSocket(int backlog)
@@ -49,8 +49,8 @@ int WebServer::OpenSocket(int backlog)
 
   memset(&sin, 0, sizeof(sin));
   sin.sin_family = AF_INET;
-  sin.sin_addr.s_addr = INADDR_ANY;
-  //sin.sin_addr.s_addr = inet_addr("192.168.0.16");
+  //sin.sin_addr.s_addr = INADDR_ANY;
+  sin.sin_addr.s_addr = inet_addr("192.168.0.16");
 
   // Map port number (char string) to port number (int)
   if ((sin.sin_port=htons((unsigned short)this->listenPort)) == 0)
@@ -125,10 +125,9 @@ bool WebServer::Start()
   }
 
   // Make sure all clients are serviced, before server goes down
-  for (auto &i : requests)
-    i.join();
+  for (auto &thread : requests)
+    thread.join();
 
-  // todo: start the server
   return true;
 }
 
@@ -140,11 +139,13 @@ void WebServer::HandleRequest(int newfd)
     return;
   }
 
+  // TODO: parse the client request, and respond appropriately
+  
   std::cout << "Contents" << std::endl << buf << std::endl;
   char response[] = "HTTP/1.1 200 OK\r\n"
     "Content-Type: text/html; charset=UTF-8\r\n\r\n"
     "<!DOCTYPE html><html><head><title>welcome to web server programming</title>"
-    "<body><h1>Hello, world!</h1></body></html>\r\n";
+    "<body><h1>Hello gagan! Welcome to colorado!</h1></body></html>\r\n";
 
   std::cout << "******Sending data***************" << std::endl;
   write(newfd,response, sizeof(response) - 1);

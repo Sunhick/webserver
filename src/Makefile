@@ -1,7 +1,9 @@
+###############################################
 #
-# Author: Sunil bn <suba5417@colorado.edu>
 # Make file for Web Server
-# 
+# Author: Sunil bn <suba5417@colorado.edu>
+#
+# ############################################
 
 CC = g++
 DEBUG = -g
@@ -11,6 +13,7 @@ CCFLAGS = -Wall -std=c++11 $(DEBUG) -I $(IDIR)
 IDIR = ./include
 Exe = httpd
 
+# Discover all .cc files in src/ and try to compile them
 SRC = $(wildcard *.cc)
 OBJS = $(SRC:.cc=.o)
 
@@ -28,4 +31,4 @@ clean:
 
 # create a web server source tar ball 
 tar:
-	tar cvf webserver.tar *.* include/*.*
+	tar -cvzf webserver.tar.gz *.* include/*.*
