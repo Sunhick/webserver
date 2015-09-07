@@ -17,7 +17,9 @@ Exe = httpd
 SRC = $(wildcard *.cc)
 OBJS = $(SRC:.cc=.o)
 
-all: $(Exe)
+TARBALL = webserver.tar.gz
+
+all: $(Exe) $(TARBALL)
 
 $(Exe): $(OBJS)
 	$(CC) $(LDFLAGS) $(OBJS) -o $(Exe)
@@ -27,8 +29,8 @@ $(Exe): $(OBJS)
 
 .PHONY: clean
 clean:
-	@rm $(OBJS) $(Exe) *~ include/*~
+	@rm $(OBJS) $(Exe) *~ include/*~ $(TARBALL)
 
 # create a web server source tar ball 
 tar:
-	tar -cvzf webserver.tar.gz *.* include/*.*
+	tar -cvzf $(TARBALL) *.* include/*.*
