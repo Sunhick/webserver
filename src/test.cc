@@ -4,6 +4,7 @@
  * Author : Sunil bn <suba5417@colorado.edu>
  *****************************************************/
 #include <iostream>
+#include <exception>
 
 #include "include/ConfigParser.h"
 #include "include/WebServer.h"
@@ -19,8 +20,15 @@ int main(int argc, char *argv[])
 void LaunchServer()
 {
   webkit::WebServer httpd("ws.conf");
-  auto socketOpened = httpd.Start();
 
-  if (socketOpened)
-    httpd.Stop();
+  try {
+    auto socketOpened = httpd.Start();
+
+    if (socketOpened)
+      httpd.Stop();
+    
+  } catch (std::exception& e) {
+    std::cout << "Server faulted! Reason:" << e.what()  << "\n";
+  }
+
 }

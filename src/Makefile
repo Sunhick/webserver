@@ -6,7 +6,7 @@
 # ############################################
 
 CC = g++
-DEBUG = -g
+DEBUG = -g -O0
 LDFLAGS = -pthread
 CCFLAGS = -Wall -std=c++11 $(DEBUG) -I $(IDIR)
 

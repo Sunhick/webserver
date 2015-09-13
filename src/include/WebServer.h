@@ -25,7 +25,7 @@ namespace webkit {
     // Print the message and exit the program
     int Die(const char *format, ...);
     // Handle client request in separate thread
-    void HandleRequest(int new_fd);
+    void DispatchRequest(int new_fd);
     
   public:
     WebServer(std::string cfile);

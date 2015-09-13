@@ -19,12 +19,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <exception>
 #include <iostream>
 #include <thread>
 #include <vector>
 
 #include "include/WebServer.h"
 #include "include/ConfigParser.h"
+#include "include/HttpRequest.h"
 
 using namespace webkit;
 
@@ -49,9 +51,9 @@ int WebServer::OpenSocket(int backlog)
 
   memset(&sin, 0, sizeof(sin));
   sin.sin_family = AF_INET;
-  sin.sin_addr.s_addr = INADDR_ANY;
-  //  support for connecting from different host
-  //sin.sin_addr.s_addr = inet_addr("192.168.0.16");
+  // sin.sin_addr.s_addr = INADDR_ANY;
+  // support for connecting from different host
+  sin.sin_addr.s_addr = inet_addr("192.168.0.16");
 
   // Map port number (char string) to port number (int)
   if ((sin.sin_port=htons((unsigned short)this->listenPort)) == 0)
@@ -95,64 +97,91 @@ int WebServer::Die(const char *format, ...)
 
 bool WebServer::Start()
 {
-  // open master socket for client to connect
-  // a maximum of 32 client can connect simultaneously.
-  sockfd = OpenSocket(BACKLOG);
+  try {
+    
+    // open master socket for client to connect
+    // a maximum of 32 client can connect simultaneously.
+    sockfd = OpenSocket(BACKLOG);
 
-  // unable to open socket.
-  if (sockfd < 0)
-    return false;
+    // unable to open socket.
+    if (sockfd < 0)
+      return false;
 
-  vector<thread> requests; // request threads
+    vector<thread> requests; // request threads
 
-  // Accept incoming connections & launch
-  // the request thread to service the clients
-  while (true) {
-    struct sockaddr_in their_addr;
-    socklen_t sin_size = sizeof(struct sockaddr_in);
-    int newfd;
-    if ((newfd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size)) == -1) {
-      perror("accept");
-      continue;
+    // Accept incoming connections & launch
+    // the request thread to service the clients
+    while (true) {
+      struct sockaddr_in their_addr;
+      socklen_t sin_size = sizeof(struct sockaddr_in);
+      int newfd;
+      if ((newfd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size)) == -1) {
+	perror("accept");
+	continue;
+      }
+
+      // fork vs thread ?
+      // Fork : overhead of creating process
+      // thread : lightweight process and faster in setting up
+      // provide service to client in a different thread
+      requests.push_back(thread(&WebServer::DispatchRequest,this, newfd));
+      // DispatchRequest(newfd);
+    
+      std::cout << "Accepted the client! Client Count:" << requests.size() << std::endl;
     }
 
-    // fork vs thread ?
-    // Fork : overhead of creating process
-    // thread : lightweight process and faster in setting up
-    // provide service to client in a different thread
-    requests.push_back(thread(&WebServer::HandleRequest,this, newfd));
+    // Make sure all clients are serviced, before server goes down
+    for (auto &thread : requests)
+      thread.join();
     
-    std::cout << "Accepted the client! Client Count:" << requests.size() << std::endl;
+  } catch (std::exception& e) {
+    std::cout << "Error in server(main) thread! Reason: " << e.what() << std::endl;
   }
-
-  // Make sure all clients are serviced, before server goes down
-  for (auto &thread : requests)
-    thread.join();
 
   return true;
 }
 
-void WebServer::HandleRequest(int newfd)
+void WebServer::DispatchRequest(int newfd)
 {
-  char buf[4096];
-  if (read(newfd, buf, 4096) == -1) {
-    std::cout << "Error in reading the request" << std::endl;
-    return;
-  }
+  try {
+    {
+      // while (timer is running) {
+      //    serve_client();
+      // }
+      char buff[4096];
+      if (read(newfd, buff, 4096) == -1) {
+	std::cout << "Error in reading the request" << std::endl;
+	return;
+      }
 
-  // TODO: parse the client request, and respond appropriately
-  
-  std::cout << "Contents" << std::endl << buf << std::endl;
-  char response[] = "HTTP/1.1 200 OK\r\n"
-    "Content-Type: text/html; charset=UTF-8\r\n\r\n"
-    "<!DOCTYPE html><html><head><title>welcome to web server programming</title>"
-    "<body><h1>Hello gagan! Welcome to colorado!</h1></body></html>\r\n";
+      // TODO: parse the client request and respond
+      HttpRequest request;
+      auto response = request.GetResponse(buff, this->documentRoot, this->documentIndex, this->contentTypes);
 
-  std::cout << "******Sending data***************" << std::endl;
-  write(newfd,response, sizeof(response) - 1);
+      if (response == nullptr)
+	return;
+
+      auto header  = response->GetHeader();
+      write(newfd, header.c_str(), header.size());
+      auto body = response->GetContent();
+      write(newfd, body.c_str(), body.size());
+      /*  
+	  std::cout << "Contents" << std::endl << buff << std::endl;
+	  char response[] = "HTTP/1.1 200 OK\r\n"
+	  "Content-Type: text/html; charset=UTF-8\r\n\r\n"
+	  "<!DOCTYPE html><html><head><title>welcome to web server programming</title>"
+	  "<body><h1>Hello Praveen Devaraj! Welcome to colorado!</h1></body></html>\r\n";
+
+	  std::cout << "******Sending data***************" << std::endl;
+	  write(newfd,response, sizeof(response) - 1);
     
-  std::cout << response << std::endl;
-  std::cout << "****Thread Id:" << this_thread::get_id() << std::endl;
+	  std::cout << response << std::endl;
+	  std::cout << "****Thread Id:" << this_thread::get_id() << std::endl;
+      */
+    }
+  } catch (std::exception& e) {
+    std::cout << "Error occured in client(worker) thread! Reason: " << e.what()  << "\n";
+  }
 }
 
 void WebServer::Stop()
