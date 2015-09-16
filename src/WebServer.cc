@@ -39,9 +39,14 @@ WebServer::WebServer(std::string conf)
 
   // Content types
   this->contentTypes.insert(std::pair<std::string, std::string>("html", config.GetString(".html")));
+  this->contentTypes.insert(std::pair<std::string, std::string>("html", config.GetString(".htm")));
   this->contentTypes.insert(std::pair<std::string, std::string>("txt", config.GetString(".txt")));
   this->contentTypes.insert(std::pair<std::string, std::string>("png", config.GetString(".png")));
   this->contentTypes.insert(std::pair<std::string, std::string>("gif", config.GetString(".gif")));
+  this->contentTypes.insert(std::pair<std::string, std::string>("jpg", config.GetString(".jpg")));
+  this->contentTypes.insert(std::pair<std::string, std::string>("css", config.GetString(".css")));
+  this->contentTypes.insert(std::pair<std::string, std::string>("js", config.GetString(".js")));
+  this->contentTypes.insert(std::pair<std::string, std::string>("ico", config.GetString(".ico")));
 }
 
 int WebServer::OpenSocket(int backlog)
@@ -51,9 +56,9 @@ int WebServer::OpenSocket(int backlog)
 
   memset(&sin, 0, sizeof(sin));
   sin.sin_family = AF_INET;
-  // sin.sin_addr.s_addr = INADDR_ANY;
+  sin.sin_addr.s_addr = INADDR_ANY;
   // support for connecting from different host
-  sin.sin_addr.s_addr = inet_addr("192.168.0.16");
+  // sin.sin_addr.s_addr = inet_addr("10.201.95.231");
 
   // Map port number (char string) to port number (int)
   if ((sin.sin_port=htons((unsigned short)this->listenPort)) == 0)
@@ -125,7 +130,6 @@ bool WebServer::Start()
       // thread : lightweight process and faster in setting up
       // provide service to client in a different thread
       requests.push_back(thread(&WebServer::DispatchRequest,this, newfd));
-      // DispatchRequest(newfd);
     
       std::cout << "Accepted the client! Client Count:" << requests.size() << std::endl;
     }
@@ -144,17 +148,23 @@ bool WebServer::Start()
 void WebServer::DispatchRequest(int newfd)
 {
   try {
+   while(true)
     {
       // while (timer is running) {
       //    serve_client();
       // }
       char buff[4096];
+    
       if (read(newfd, buff, 4096) == -1) {
 	std::cout << "Error in reading the request" << std::endl;
 	return;
       }
 
-      // TODO: parse the client request and respond
+      // process the buffer if it contains request
+      if (buff == NULL) continue;
+      // std::cout << "Thread id:" << std::this_thread::get_id()  << "\nBuffer: " << buff  << "\n";
+
+      // parse the client request and respond
       HttpRequest request;
       auto response = request.GetResponse(buff, this->documentRoot, this->documentIndex, this->contentTypes);
 
@@ -163,21 +173,11 @@ void WebServer::DispatchRequest(int newfd)
 
       auto header  = response->GetHeader();
       write(newfd, header.c_str(), header.size());
-      auto body = response->GetContent();
-      write(newfd, body.c_str(), body.size());
-      /*  
-	  std::cout << "Contents" << std::endl << buff << std::endl;
-	  char response[] = "HTTP/1.1 200 OK\r\n"
-	  "Content-Type: text/html; charset=UTF-8\r\n\r\n"
-	  "<!DOCTYPE html><html><head><title>welcome to web server programming</title>"
-	  "<body><h1>Hello Praveen Devaraj! Welcome to colorado!</h1></body></html>\r\n";
 
-	  std::cout << "******Sending data***************" << std::endl;
-	  write(newfd,response, sizeof(response) - 1);
-    
-	  std::cout << response << std::endl;
-	  std::cout << "****Thread Id:" << this_thread::get_id() << std::endl;
-      */
+      auto body = response->GetContent();
+      // write body/content if available.
+      if (!body.empty())
+	write(newfd, body.c_str(), body.size());
     }
   } catch (std::exception& e) {
     std::cout << "Error occured in client(worker) thread! Reason: " << e.what()  << "\n";

@@ -9,29 +9,65 @@
 #include <fstream>
 #include <iostream>
 
+#include <sys/stat.h>
+
 #include "include/HttpRequest.h"
+#include "include/ErrorCodes.h" 
 
 using namespace webkit;
 
 HttpResponse* HttpRequest::GetResponse(char* buffer, std::string documentRoot, std::string documentIndex,
-				      std::map<std::string, std::string> mimes)
+				       std::map<std::string, std::string> mimes)
 {
-  this->ParseRequest(buffer);
 
+  HttpResponse* response;
+  
+  // If unable to parse, it's not GET method
+  // return ErrorCode 404 Invalid method
+  if (!this->ParseRequest(buffer)) {
+    response = new HttpResponse("400 Bad Request: Invalid Method", "",
+				Error400InvalidMethod.size());
+    response->WriteContent(Error400InvalidMethod);
+    return response;
+  }
+
+  // render default webpage if the client didn't request for any page
   if (this->path == "/")
-    query = documentIndex;	// render default webpage if the client didn't request for any page
+    query = documentIndex;	
+
+  // actual path  = Root + virtual path + query
+  auto requestedFile = documentRoot + path + query;
+
+  /* if (!FileExists(requestedFile)) {
+    std::cout << "File not found. " << requestedFile << std::endl;
+    // File doesn't exists
+    std::string error = std::string("404 Not Found:") + path + query;
+    response = new HttpResponse(error, "", Error404NotFound.size());
+    response->WriteContent(Error404NotFound);
+    return response;
+    }*/
 
   size_t dot = query.find_last_of(".");
   std::string ext = query.substr(dot + 1);
+
+  /*
+  if (mimes.find(ext) == mimes.end()) {
+    std::string error = std::string("501 Not Implemented:") + path + query;
+    response = new HttpResponse(error, "", Error404NotFound.size());
+    response->WriteContent(Error404NotFound);
+    return response;
+  }
+  */
+
   auto mime = mimes[ext];
 
-  auto requestedFile = /*documentRoot*/ std::string("/home/sunny/wrk/netsys/webserver/www") + path + query;
   std::ifstream file(requestedFile);
   if (!file.good()) {
-    std::cout << "Error in reading file." << requestedFile << "\n";
-    // error in reading file
-    //throw "error in reading file";
-    return nullptr;
+    std::cout << "Error in reading file. File maybe corrupted or may not exists!" << requestedFile << "\n";
+    std::string error = std::string("404 Not Found:") + path + query;
+    response = new HttpResponse(error, mime, Error404NotFound.size());
+    response->WriteContent(Error404NotFound);
+    return response;
   }
 
   file.seekg(0, std::ios_base::end);
@@ -39,7 +75,7 @@ HttpResponse* HttpRequest::GetResponse(char* buffer, std::string documentRoot, s
   file.seekg(0);
 
   std::string responseCode = "200 OK";
-  HttpResponse* response= new HttpResponse(responseCode, mime, size);
+  response= new HttpResponse(responseCode, mime, size);
   const size_t blockSize = 4096;
   std::streampos pos = 0;
   std::string data;
@@ -55,7 +91,13 @@ HttpResponse* HttpRequest::GetResponse(char* buffer, std::string documentRoot, s
   return response;
 }
 
-void HttpRequest::ParseRequest(char* request)
+bool HttpRequest::FileExists(const std::string& name)
+{
+  struct stat buffer;   
+  return (stat (name.c_str(), &buffer) == 0); 
+}
+
+bool HttpRequest::ParseRequest(char* request)
 {
   std::stringstream parse(request);
   std::string str;
@@ -76,6 +118,10 @@ void HttpRequest::ParseRequest(char* request)
 
     else path = str;
   } else {
-    throw "Unknown request";
+    std::cout << "Unknown request! Http method is not GET"  << "\n";
+    std::cout << "Request dump:" << request << std::endl;
+    // throw "Unknown request";
+    return false;
   }
+  return true;
 }

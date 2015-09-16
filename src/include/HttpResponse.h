@@ -16,8 +16,9 @@ namespace webkit {
   private:
     std::stringstream header;
     std::string body;
+
   public:
-    HttpResponse(std::string& responseCode, std::string& contentType, size_t bodySize);
+    HttpResponse(const std::string& responseCode, const std::string& contentType, size_t bodySize);
     std::string GetHeader();
     std::string GetContent();
     void WriteContent(std::string data);

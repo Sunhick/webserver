@@ -12,12 +12,15 @@ std::string HttpResponse::GetHeader()
   return header.str();
 }
 
-HttpResponse::HttpResponse(std::string& responseCode,
-			   std::string& contentType,
+HttpResponse::HttpResponse(const std::string& responseCode,
+			   const std::string& contentType,
 			   size_t bodySize)
 {
   header << "HTTP/1.0 " << responseCode << "\r\n";
   header << "Server: " SERVER_NAME "\r\n";
+
+  header << "Connection: " << "Keep-Alive" << "\r\n";
+  
   header << "Content-Type: " << contentType << "\r\n";
   header << "Content-Length: " << bodySize << "\r\n";
   header << "\r\n";

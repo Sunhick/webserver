@@ -45,6 +45,8 @@ ConfigParser::ConfigParser(std::string configfile)
     if (str[0] == '#') // comment line, skip it.
       continue;
 
+    // remove qutoes in the string, as in documentRoot
+    str.erase(remove(str.begin(), str.end(), '\"'), str.end());
     auto tokens = Split(str);
     parsedValues.insert(std::pair<std::string, std::string>(tokens.at(0), tokens.at(1)));
   }
