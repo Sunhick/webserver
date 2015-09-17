@@ -21,17 +21,21 @@
 #include <fcntl.h>
 
 #include <exception>
+#include <csignal>
 #include <iostream>
 #include <thread>
 #include <vector>
 #include <chrono>
 #include <ctime>
 
+#include "include/Common.h"
 #include "include/WebServer.h"
 #include "include/ConfigParser.h"
 #include "include/HttpRequest.h"
 
 using namespace webkit;
+
+int gSockId;
 
 WebServer::WebServer(std::string conf)
 {
@@ -109,12 +113,19 @@ bool WebServer::Start()
     
     // open master socket for client to connect
     // a maximum of 32 client can connect simultaneously.
-    sockfd = OpenSocket(BACKLOG);
+    gSockId = sockfd = OpenSocket(BACKLOG);
 
     // unable to open socket.
     if (sockfd < 0)
       return false;
 
+    // Install a signal handler for graceful shut of server
+    std::signal(SIGINT, [](int signal) {
+	std::cout << "\nSignal caught!" << "Closing server socket..." << std::endl;
+	close(gSockId);
+	exit(EXIT_FAILURE);
+      });
+    
     vector<thread> requests; // request threads
 
     // Accept incoming connections & launch
@@ -164,7 +175,7 @@ void WebServer::DispatchRequest(int newfd)
     std::chrono::time_point<std::chrono::system_clock> start = std::chrono::system_clock::now();
     std::chrono::duration<double> elapsed_seconds = std::chrono::duration<double>::zero();
     
-    while(elapsed_seconds.count() < 10)  {
+    while(elapsed_seconds.count() < TIME_OUT)  {
       // while (timer is running) {
       //    serve_client();
       // }
@@ -216,5 +227,6 @@ void WebServer::Stop()
 
 void WebServer::Abort()
 {
+  Stop();
   abort();
 }

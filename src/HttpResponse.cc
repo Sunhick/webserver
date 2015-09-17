@@ -4,6 +4,7 @@
  * Author : Sunil bn <suba5417@colorado.edu>
  *****************************************************/
 #include "include/HttpResponse.h"
+#include "include/Common.h"
 
 using namespace webkit;
 
@@ -18,9 +19,8 @@ HttpResponse::HttpResponse(const std::string& responseCode,
 {
   header << "HTTP/1.0 " << responseCode << "\r\n";
   header << "Server: " SERVER_NAME "\r\n";
-
   header << "Connection: " << "Keep-Alive" << "\r\n";
-  
+  header << "Keep-Alive: " << TIME_OUT << "\r\n";
   header << "Content-Type: " << contentType << "\r\n";
   header << "Content-Length: " << bodySize << "\r\n";
   header << "\r\n";
