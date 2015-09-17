@@ -25,10 +25,11 @@ HttpResponse* HttpRequest::GetResponse(char* buffer, std::string documentRoot, s
   // If unable to parse, it's not GET method
   // return ErrorCode 404 Invalid method
   if (!this->ParseRequest(buffer)) {
-    response = new HttpResponse("400 Bad Request: Invalid Method", "",
+    /* response = new HttpResponse("400 Bad Request: Invalid Method", "",
 				Error400InvalidMethod.size());
     response->WriteContent(Error400InvalidMethod);
-    return response;
+    return response; */
+    return nullptr;
   }
 
   // render default webpage if the client didn't request for any page

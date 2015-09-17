@@ -18,11 +18,14 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <fcntl.h>
 
 #include <exception>
 #include <iostream>
 #include <thread>
 #include <vector>
+#include <chrono>
+#include <ctime>
 
 #include "include/WebServer.h"
 #include "include/ConfigParser.h"
@@ -148,16 +151,30 @@ bool WebServer::Start()
 void WebServer::DispatchRequest(int newfd)
 {
   try {
-   while(true)
-    {
+
+    std::cout << "Worker thread(client) socket Id: " << newfd << std::endl;
+
+    // Make read() call non-blocking.
+    int flags = fcntl(newfd, F_GETFL, 0);
+    fcntl(newfd, F_SETFL, flags | O_NONBLOCK);
+    
+    // Persistant-connection(pipeline):
+    // Keep the socket open for 10s for incoming connections.
+    // after time out the socket will be closed.
+    std::chrono::time_point<std::chrono::system_clock> start = std::chrono::system_clock::now();
+    std::chrono::duration<double> elapsed_seconds = std::chrono::duration<double>::zero();
+    
+    while(elapsed_seconds.count() < 10)  {
       // while (timer is running) {
       //    serve_client();
       // }
       char buff[4096];
-    
+      elapsed_seconds = std::chrono::system_clock::now() - start;
+
       if (read(newfd, buff, 4096) == -1) {
-	std::cout << "Error in reading the request" << std::endl;
-	return;
+	// std::cout << "Error in reading the request" << std::endl;
+	// return;
+	continue;
       }
 
       // process the buffer if it contains request
@@ -178,7 +195,15 @@ void WebServer::DispatchRequest(int newfd)
       // write body/content if available.
       if (!body.empty())
 	write(newfd, body.c_str(), body.size());
-    }
+
+      // Incoming request, reset the timer
+      start = std::chrono::system_clock::now();
+      elapsed_seconds = std::chrono::duration<double>::zero();
+
+    } // while
+
+    std::cout << "Client request timeout! closing the socket... id: " << newfd << std::endl;
+    close(newfd);
   } catch (std::exception& e) {
     std::cout << "Error occured in client(worker) thread! Reason: " << e.what()  << "\n";
   }
