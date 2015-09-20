@@ -12,6 +12,7 @@
 
 namespace webkit {
 
+  typedef int ErrorCode;
   enum HttpMethod {
     GET,
     POST,
@@ -28,10 +29,10 @@ namespace webkit {
     std::string query;
     HttpMethod method;
 
-    bool ParseRequest(char* request);
+    ErrorCode ParseRequest(std::string request, std::string documentIndex, std::string& reqType);
     bool FileExists(const std::string& name);
   public:
-    HttpResponse* GetResponse(char* buffer, std::string documentRoot,
+    HttpResponse* GetResponse(std::string buffer, std::string documentRoot,
 			      std::string documentIndex, std::map<std::string, std::string> mimes);
   };
 }

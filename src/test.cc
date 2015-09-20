@@ -29,6 +29,7 @@ void LaunchServer()
     
   } catch (std::exception& e) {
     std::cout << "Server faulted! Reason:" << e.what()  << "\n";
+  } catch (...) {
+    std::cout << "Server faulted!" << std::endl;
   }
-
 }

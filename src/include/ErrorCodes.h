@@ -8,6 +8,15 @@
 
 #include <string>
 
+#define NONE			 -1
+#define INVALID_METHOD		 9400
+#define INVALID_URL		 9401
+#define INVALID_HTTP_VERSION	 9402
+#define NOT_FOUND		 9404
+#define NOT_IMPL		 9501
+#define INTERNAL_ERROR		 9500
+
+
 std::string Error400InvalidMethod = 
   R"(
 <html>
@@ -43,4 +52,10 @@ std::string Error501NotImpl =
 </html>
 )";
 
+std::string Error500InternalError =
+  R"(
+<html>
+	<body><b>500 Internal Server Error: Cannot allocate memory</b></body>
+</html>
+)";
 #endif

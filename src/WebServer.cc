@@ -63,9 +63,14 @@ int WebServer::OpenSocket(int backlog)
 
   memset(&sin, 0, sizeof(sin));
   sin.sin_family = AF_INET;
-  sin.sin_addr.s_addr = INADDR_ANY;
+
+#ifdef USE_IP
   // support for connecting from different host
-  // sin.sin_addr.s_addr = inet_addr("10.201.95.231");
+  sin.sin_addr.s_addr = inet_addr("192.168.0.16");
+#else
+  // use local host
+  sin.sin_addr.s_addr = INADDR_ANY;
+#endif
 
   // Map port number (char string) to port number (int)
   if ((sin.sin_port=htons((unsigned short)this->listenPort)) == 0)
@@ -189,29 +194,48 @@ void WebServer::DispatchRequest(int newfd)
       }
 
       // process the buffer if it contains request
-      if (buff == NULL) continue;
+      if (buff == NULL || strlen(buff) == 0) continue;
+
+      // std::cout << "Buffer size : " << strlen(buff) << std::endl;
       // std::cout << "Thread id:" << std::this_thread::get_id()  << "\nBuffer: " << buff  << "\n";
+      // std::cout << reqlines << std::endl;
 
-      // parse the client request and respond
-      HttpRequest request;
-      auto response = request.GetResponse(buff, this->documentRoot, this->documentIndex, this->contentTypes);
+      std::string reqlines = std::string(buff);
+      std::size_t current = 0;
+      std::size_t next = std::string::npos;
 
-      if (response == nullptr)
-	return;
+      do {
+	// process all requests from the client.
+	// for eg: Client may send multiple requests in shot.
 
-      auto header  = response->GetHeader();
-      write(newfd, header.c_str(), header.size());
+	//split based on double new line 
+	next = reqlines.find("\\n\\n", current);
+	auto reqline = reqlines.substr(current, next - current);
+	current = next + 4;
 
-      auto body = response->GetContent();
-      // write body/content if available.
-      if (!body.empty())
-	write(newfd, body.c_str(), body.size());
+	// parse the client request and respond
+	HttpRequest request;
+	auto response = request.GetResponse(reqline, this->documentRoot, this->documentIndex, this->contentTypes);
+	
+	if (response == nullptr)
+	  continue;
 
+	auto header  = response->GetHeader();
+	write(newfd, header.c_str(), header.size());
+
+	auto body = response->GetContent();
+	// write body/content if available.
+	if (!body.empty())
+	  write(newfd, body.c_str(), body.size());
+
+	delete response;
+      } while (next != std::string::npos); // handle all multiple request line sent in one shot
+      
       // Incoming request, reset the timer
       start = std::chrono::system_clock::now();
       elapsed_seconds = std::chrono::duration<double>::zero();
 
-    } // while
+    } // while (timeout)
 
     std::cout << "Client request timeout! closing the socket... id: " << newfd << std::endl;
     close(newfd);

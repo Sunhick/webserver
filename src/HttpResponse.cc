@@ -17,7 +17,7 @@ HttpResponse::HttpResponse(const std::string& responseCode,
 			   const std::string& contentType,
 			   size_t bodySize)
 {
-  header << "HTTP/1.0 " << responseCode << "\r\n";
+  header << "HTTP/1.1 " << responseCode << "\r\n";
   header << "Server: " SERVER_NAME "\r\n";
   header << "Connection: " << "Keep-Alive" << "\r\n";
   header << "Keep-Alive: " << TIME_OUT << "\r\n";

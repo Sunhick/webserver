@@ -19,6 +19,11 @@ OBJS = $(SRC:.cc=.o)
 
 TARBALL = webserver.tar.gz
 
+ifeq ($(USE_IP), 1)
+	DEBUG += -DUSE_IP
+# @echo 'Building with -D USE_IP feature...'
+endif
+
 all: $(Exe)
 
 $(Exe): $(OBJS)
