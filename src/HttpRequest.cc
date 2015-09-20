@@ -60,6 +60,17 @@ HttpResponse* HttpRequest::GetResponse(std::string buffer,
   // actual path  = Root + virtual path + query
   auto requestedFile = documentRoot + path + query;
 
+  size_t dot = requestedFile.find_last_of(".");
+  std::string ext = requestedFile.substr(dot + 1);
+ 
+  if (mimes.find(ext) == mimes.end()) {
+    // std::cout << "ext: " << ext << "query " << query << std::endl;
+    std::string error = std::string("501 Not Implemented:") + path + query;
+    response = new HttpResponse(error, "", Error501NotImpl.size());
+    response->WriteContent(Error501NotImpl);
+    return response;
+  }
+ 
   if (!FileExists(requestedFile)) {
     std::cout << "File not found. " << requestedFile << std::endl;
     // File doesn't exists
@@ -69,17 +80,6 @@ HttpResponse* HttpRequest::GetResponse(std::string buffer,
     return response;
   }
   
-  size_t dot = query.find_last_of(".");
-  std::string ext = query.substr(dot + 1);
- 
-  /*if (ext != "" && mimes.find(ext) == mimes.end()) {
-      std::cout << "ext: " << ext << "query " << query << std::endl;
-      std::string error = std::string("501 Not Implemented:") + path + query;
-      response = new HttpResponse(error, "", Error501NotImpl.size());
-      response->WriteContent(Error501NotImpl);
-      return response;
-      }*/
-
   auto mime = mimes[ext];
 
   std::ifstream file(requestedFile);
