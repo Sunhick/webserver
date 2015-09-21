@@ -38,4 +38,4 @@ clean:
 
 # create a web server source tar ball 
 tar:
-	tar -cvzf $(TARBALL) *.* include/*.* README
+	tar -cvzf $(TARBALL) *.* include/*.* README Makefile
