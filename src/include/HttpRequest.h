@@ -29,11 +29,18 @@ namespace webkit {
     std::string query;
     HttpMethod method;
 
-    ErrorCode ParseRequest(std::string request, std::string documentIndex, std::string& reqType);
+    ErrorCode ParseRequest(std::string request,
+			   std::string documentIndex,
+			   std::string& reqType,
+			   bool& keepAlive);
     bool FileExists(const std::string& name);
   public:
-    HttpResponse* GetResponse(std::string buffer, std::string documentRoot,
-			      std::string documentIndex, std::map<std::string, std::string> mimes);
+    HttpResponse* GetResponse(std::string buffer,
+			      std::string documentRoot,
+			      std::string documentIndex,
+			      std::map<std::string,
+			      std::string> mimes,
+			      bool& keepAlive);
   };
 }
 

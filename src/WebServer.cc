@@ -159,6 +159,8 @@ bool WebServer::Start()
     
   } catch (std::exception& e) {
     std::cout << "Error in server(main) thread! Reason: " << e.what() << std::endl;
+  } catch (...) {
+    std::cout << "Error in server(main) thread!" << std::endl;
   }
 
   return true;
@@ -179,14 +181,15 @@ void WebServer::DispatchRequest(int newfd)
     // after time out the socket will be closed.
     std::chrono::time_point<std::chrono::system_clock> start = std::chrono::system_clock::now();
     std::chrono::duration<double> elapsed_seconds = std::chrono::duration<double>::zero();
+    bool keepAlive = true; // initially set to true. then update per the request
     
-    while(elapsed_seconds.count() < TIME_OUT)  {
+    while(elapsed_seconds.count() < TIME_OUT && keepAlive)  {
       // while (timer is running) {
       //    serve_client();
-      // }
+      // }   
       char buff[4096];
       elapsed_seconds = std::chrono::system_clock::now() - start;
-
+      
       if (read(newfd, buff, 4096) == -1) {
 	// std::cout << "Error in reading the request" << std::endl;
 	// return;
@@ -210,12 +213,21 @@ void WebServer::DispatchRequest(int newfd)
 
 	//split based on double new line 
 	next = reqlines.find("\\n\\n", current);
-	auto reqline = reqlines.substr(current, next - current);
-	current = next + 4;
+	auto reqline = std::string("");
+	if (next != std::string::npos) {
+	  reqline = reqlines.substr(current, next - current);
+	  current = next + 4;
+	} else {
+	  reqline = reqlines;
+	}
 
 	// parse the client request and respond
 	HttpRequest request;
-	auto response = request.GetResponse(reqline, this->documentRoot, this->documentIndex, this->contentTypes);
+	auto response = request.GetResponse(reqline,
+					    this->documentRoot,
+					    this->documentIndex,
+					    this->contentTypes,
+					    keepAlive);
 	
 	if (response == nullptr)
 	  continue;
@@ -241,6 +253,8 @@ void WebServer::DispatchRequest(int newfd)
     close(newfd);
   } catch (std::exception& e) {
     std::cout << "Error occured in client(worker) thread! Reason: " << e.what()  << "\n";
+  } catch (...) {
+    std::cout << "Error occured in client(worker) thread!" << std::endl;
   }
 }
 

@@ -21,14 +21,15 @@ HttpResponse* HttpRequest::GetResponse(std::string buffer,
 				       std::string documentRoot,
 				       std::string documentIndex,
 				       std::map<std::string,
-				       std::string> mimes)
+				       std::string> mimes,
+				       bool& keepAlive)
 {
   HttpResponse* response;
   std::string errorMsg;
   ErrorCode errorCode = NONE;
   // If unable to parse, it's not GET method
   // return ErrorCode 404 Invalid method
-  if ((errorCode = this->ParseRequest(buffer, documentIndex, errorMsg)) != NONE) {
+  if ((errorCode = this->ParseRequest(buffer, documentIndex, errorMsg, keepAlive)) != NONE) {
 
     // Invalid method
     if (errorCode == INVALID_METHOD) {
@@ -120,7 +121,10 @@ bool HttpRequest::FileExists(const std::string& name)
   return (stat (name.c_str(), &buffer) == 0); 
 }
 
-ErrorCode HttpRequest::ParseRequest(std::string request, std::string documentIndex, std::string& error)
+ErrorCode HttpRequest::ParseRequest(std::string request,
+				    std::string documentIndex,
+				    std::string& error,
+				    bool& keepAlive)
 {
   std::stringstream parse(request);
   std::string str;
@@ -171,6 +175,11 @@ ErrorCode HttpRequest::ParseRequest(std::string request, std::string documentInd
       return INVALID_URL;
     }
 #endif
+
+    auto connection = request.find("Connection");
+    if (connection == std::string::npos) {
+      keepAlive = false;
+    }
 
   } else {
     error = str;
