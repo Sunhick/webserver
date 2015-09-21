@@ -1,7 +1,7 @@
 /****************************************************
  *  Header for http web server
  *
- * Author : Sunil bn <suba5417@colorado.edu>
+ * Author : Sunil bn <sunhick@gmail.com>
  *****************************************************/
 #ifndef WEB_KIT_WEB_SERVER_H
 #define WEB_KIT_WEB_SERVER_H

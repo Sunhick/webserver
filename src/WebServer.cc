@@ -1,7 +1,7 @@
 /****************************************************
  *  Http web server implmentation
  *
- * Author : Sunil bn <suba5417@colorado.edu>
+ * Author : Sunil bn <sunhick@gmail.com>
  *****************************************************/
 #include <sys/types.h>
 #include <sys/socket.h>

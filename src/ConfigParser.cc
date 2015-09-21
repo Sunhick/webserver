@@ -1,7 +1,7 @@
 /****************************************************
  *  Parses web configuration file
  *
- * Author : Sunil bn <suba5417@colorado.edu>
+ * Author : Sunil bn <sunhick@gmail.com>
  *****************************************************/
 #include <vector>
 #include <algorithm>

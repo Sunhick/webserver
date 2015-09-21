@@ -1,7 +1,7 @@
 /****************************************************
  *  Header file for web configuration parser
  *
- * Author : Sunil bn <suba5417@colorado.edu>
+ * Author : Sunil bn <sunhick@gmail.com>
  *****************************************************/
 #ifndef WEB_KIT_CONFIG_PARSER_H
 #define WEB_KIT_CONFIG_PARSER_H

@@ -1,7 +1,7 @@
 /****************************************************
  *  Http request file
  *
- * Author : Sunil bn <suba5417@colorado.edu>
+ * Author : Sunil bn <sunhick@gmail.com>
  *****************************************************/
 #include <stdexcept>
 #include <sstream>
