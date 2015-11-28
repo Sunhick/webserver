@@ -15,4 +15,5 @@ install:
   - if [ "$CXX" = "g++" ]; then export CXX="g++-4.9"; fi
 
 script: 
+  - $CXX --version
   - cd src && make
