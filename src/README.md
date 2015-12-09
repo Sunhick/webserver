@@ -1,9 +1,5 @@
-=====================================================
-
-	Web server implementation in c++
-
-=====================================================
-					Sept 20, 2015
+# Web server implementation in c++
+#                    Sept 20, 2015
 
 
 Contents:
