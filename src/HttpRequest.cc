@@ -20,8 +20,7 @@ using namespace webkit;
 HttpResponse* HttpRequest::GetResponse(std::string buffer,
 				       std::string documentRoot,
 				       std::string documentIndex,
-				       std::map<std::string,
-				       std::string> mimes,
+				       std::map<std::string, std::string> mimes,
 				       bool& keepAlive)
 {
   HttpResponse* response;
@@ -177,7 +176,7 @@ ErrorCode HttpRequest::ParseRequest(std::string request,
 #endif
 
     auto connection = request.find("Connection");
-    if (connection == std::string::npos) {
+    if (connection != std::string::npos) {
       keepAlive = false;
     }
 

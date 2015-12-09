@@ -66,7 +66,7 @@ int WebServer::OpenSocket(int backlog)
 
 #ifdef USE_IP
   // support for connecting from different host
-  sin.sin_addr.s_addr = inet_addr("192.168.0.16");
+  sin.sin_addr.s_addr = inet_addr("10.201.30.63");
 #else
   // use local host
   sin.sin_addr.s_addr = INADDR_ANY;
@@ -183,7 +183,7 @@ void WebServer::DispatchRequest(int newfd)
     std::chrono::duration<double> elapsed_seconds = std::chrono::duration<double>::zero();
     bool keepAlive = true; // initially set to true. then update per the request
     
-    while(elapsed_seconds.count() < TIME_OUT && keepAlive)  {
+    do  {
       // while (timer is running) {
       //    serve_client();
       // }   
@@ -221,6 +221,8 @@ void WebServer::DispatchRequest(int newfd)
 	  reqline = reqlines;
 	}
 
+	std::cout << "keep alive " << keepAlive << std::endl;
+
 	// parse the client request and respond
 	HttpRequest request;
 	auto response = request.GetResponse(reqline,
@@ -242,12 +244,13 @@ void WebServer::DispatchRequest(int newfd)
 
 	delete response;
       } while (next != std::string::npos); // handle all multiple request line sent in one shot
-      
+
+      std::cout << "keep alive " << keepAlive << std::endl;
       // Incoming request, reset the timer
       start = std::chrono::system_clock::now();
       elapsed_seconds = std::chrono::duration<double>::zero();
 
-    } // while (timeout)
+    } while(elapsed_seconds.count() < TIME_OUT || keepAlive);// while (timeout)
 
     std::cout << "Client request timeout! closing the socket... id: " << newfd << std::endl;
     close(newfd);
