@@ -118,12 +118,13 @@ format mentioned the previous section. Also put all the web pages that
 need to be rendered in a "www" folder and mentioned the absolute path to the
 "www" in the configuration file. Now start the server (section 3.3).
 
-Eg: 	+ src
-           +-- httpd
-	   +-- *.cc files
-	   +-- include
-	        +-- *.h files
-	   +-- ws.conf
+Eg: 
+	+ src
+           + httpd
+	   + *.cc files
+	   + include
+	        + *.h files
+	   + ws.conf
 
 	+ www
 	  + images
