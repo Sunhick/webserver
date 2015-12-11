@@ -119,12 +119,13 @@ need to be rendered in a "www" folder and mentioned the absolute path to the
 "www" in the configuration file. Now start the server (section 3.3).
 
 Eg: 
+
 	+ src
-           + httpd
-	   + *.cc files
-	   + include
-	        + *.h files
-	   + ws.conf
+	  + httpd
+	  + *.cc files
+	  + include
+	    + *.h files
+	  + ws.conf
 
 	+ www
 	  + images
